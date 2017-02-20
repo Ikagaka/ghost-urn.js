@@ -1,33 +1,31 @@
 {
+  "compileOnSave": true,
   "compilerOptions": {
-    "declaration": false,
-    "diagnostics": false,
-    "listFiles": false,
+    "declaration": true,
+    "diagnostics": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "umd",
+    "moduleResolution": "node",
+    "newLine": "LF",
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noImplicitUseStrict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "outDir": "dist",
+    "preserveConstEnums": true,
     "pretty": true,
     "removeComments": false,
-    "target": "es2015",
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "noImplicitAny": true,
-    "sourceMap": true,
-    "strictNullChecks": false,
-    "forceConsistentCasingInFileNames": true,
     "rootDir": "src",
-    "outDir": "es5"
+    "sourceMap": true,
+    "strictNullChecks": true,
+    "target": "es2015"
   },
-  "filesGlob": [
-    "./**/*.ts",
-    "./**/*.tsx",
-    "!./**/*.d.ts",
-    "!./gulpfile.ts",
-    "./typings/**/*.d.ts",
-    "!./node_modules/**/*.ts",
-    "./node_modules/typescript/lib/lib.es2017.d.ts"
-  ],
   "exclude": [
     "node_modules",
-    "bower_components",
-    "typings/browser.d.ts",
-    "typings/browser"
+    "dist",
+    "test"
   ]
 }

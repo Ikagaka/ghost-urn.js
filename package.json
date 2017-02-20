@@ -1,21 +1,51 @@
 {
   "name": "ghost-urn",
   "version": "1.0.0",
-  "author": "Narazaka",
-  "devDependencies": {
-    "@types/node": "^4.0.27-alpha",
-    "awesome-typescript-loader": "^2.0.1",
-    "gulp": "^3.9.1",
-    "gulp-load-plugins": "^1.2.4",
-    "gulp-notify": "^2.2.0",
-    "gulp-plumber": "^1.1.0",
-    "gulp-typescript": "^2.13.6",
-    "ts-loader": "^0.8.2",
-    "tslint": "^3.13.0-dev.0",
-    "typescript": "^2.0.0-dev.20160707",
-    "webpack-stream": "^3.2.0"
+  "description": "Ukagaka Ghost \"Shell\" implement",
+  "keywords": [
+    "ukagaka",
+    "ikagaka",
+    "shell"
+  ],
+  "main": "./dist/lib/ghost-urn.js",
+  "types": "./dist/lib/ghost-urn.d.ts",
+  "files": [
+    "dist",
+    "web"
+  ],
+  "scripts": {
+    "dist": "npm run node && npm run web",
+    "node": "rm -rf dist && cross-env NODE_ENV=production tsc",
+    "web": "rm -rf web && cross-env NODE_ENV=production webpack --config ./webpack.config.web.js",
+    "lint": "npm run eslint && npm run tslint",
+    "eslint": "eslint *.js src test",
+    "prepublish": "echo npm run dist",
+    "tslint": "tslint  tslint *.ts src/**/*.ts test/**/*.ts",
+    "test": "npm run test-node && npm run test-web",
+    "test-node": "cross-env NODE_ENV=test nyc mocha",
+    "test-web": "cross-env NODE_ENV=test karma start --single-run",
+    "docdist": "cd doc && git clean -fd && git rm -rf * && cd .. && npm run doc && cd doc && touch .nojekyll && git add . && git commit -m doc && git push",
+    "doc": "typedoc --mode modules --out doc --readme Readme.md --name \"API Document\" --disableOutputCheck --includeDeclarations --excludeNotExported src && cd doc && git status && cd .."
   },
   "dependencies": {
-    "phaser": "^2.6.0"
+    "pixi.js": "^4.3.5",
+    "ukagaka-install-descript-info": "^1.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^7.0.5",
+    "cross-env": "^3.1.4",
+    "tslint": "^4.4.2",
+    "typescript": "^2.1.6"
+  },
+  "url": "https://github.com/Ikagaka/ghost-urn.js",
+  "author": {
+    "name": "Narazaka",
+    "email": "info@narazaka.net",
+    "url": "https://narazaka.net/"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Ikagaka/ghost-urn.js.git"
   }
 }
