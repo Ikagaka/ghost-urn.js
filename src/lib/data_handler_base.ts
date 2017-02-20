@@ -1,25 +1,10 @@
-import {Descript} from "./descript.ts";
-
 export class DataHandlerBase {
-
-  static bufferToString(buffer: Uint8Array) {
-    return "";
-  }
-
   static findDescriptPath(directory: {[path: string]: any}) {
-    return Object.keys(directory).find((path) => /(?:^|\b)descript\.txt$/i.test(path));
+      return Object.keys(directory).find((path) => /(?:^|\b)descript\.txt$/i.test(path));
   }
 
   static findDescript(directory: {[path: string]: Uint8Array}) {
-    return DataHandlerBase.bufferToString(directory[<string>DataHandlerBase.findDescriptPath(directory)]);
-  }
-
-  static parseDescript(str: string) {
-    return new Descript(); // TODO
-  }
-
-  static getDescript(directory: {[path: string]: Uint8Array}) {
-    return DataHandlerBase.parseDescript(DataHandlerBase.findDescript(directory));
+      return directory[<string> DataHandlerBase.findDescriptPath(directory)];
   }
 
   static selectImagePaths(directory: {[path: string]: any}) {
@@ -34,7 +19,7 @@ export class DataHandlerBase {
     const imagePaths = DataHandlerBase.selectImagePaths(directory);
     const images = await DataHandlerBase.loadImages(imagePaths.map((path) => directory[path]));
     const _directory: {[path: string]: HTMLImageElement} = {};
-    for  (let i = 0; i < imagePaths.length; i++) {
+    for (let i = 0; i < imagePaths.length; ++i) {
         _directory[imagePaths[i]] = images[i];
     }
     return _directory;
