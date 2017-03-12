@@ -28,9 +28,9 @@
     "doc": "typedoc --mode modules --out doc --readme Readme.md --name \"API Document\" --disableOutputCheck --includeDeclarations --excludeNotExported src && cd doc && git status && cd .."
   },
   "dependencies": {
-    "observable-collection": "^1.2.0",
+    "observable-collection": "^1.2.1",
     "pixi.js": "^4.4.0",
-    "reactiveproperty": "^1.0.1",
+    "reactiveproperty": "^1.0.2",
     "ukagaka-install-descript-info": "^1.0.2"
   },
   "devDependencies": {
