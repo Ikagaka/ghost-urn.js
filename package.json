@@ -28,14 +28,18 @@
     "doc": "typedoc --mode modules --out doc --readme Readme.md --name \"API Document\" --disableOutputCheck --includeDeclarations --excludeNotExported src && cd doc && git status && cd .."
   },
   "dependencies": {
-    "pixi.js": "^4.3.5",
+    "observable-collection": "^1.2.0",
+    "pixi.js": "^4.4.0",
+    "reactiveproperty": "^1.0.1",
     "ukagaka-install-descript-info": "^1.0.2"
   },
   "devDependencies": {
     "@types/node": "^7.0.5",
+    "@types/pixi.js": "^4.4.0",
     "cross-env": "^3.1.4",
+    "rxjs": "^5.2.0",
     "tslint": "^4.4.2",
-    "typescript": "^2.1.6"
+    "typescript": "^2.2.1"
   },
   "url": "https://github.com/Ikagaka/ghost-urn.js",
   "author": {
