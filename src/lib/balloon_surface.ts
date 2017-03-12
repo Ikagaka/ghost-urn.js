@@ -1,37 +1,36 @@
-import {Attachable} from "./attachable";
-import {BalloonSurfaceRenderer} from "./renderer/balloon_surface_renderer";
+import {ReactiveProperty} from "reactiveproperty";
 import {BalloonData} from "./balloon_data";
 import {BalloonProfile} from "./balloon_profile";
+import {Model} from "./model";
+import {BalloonSurfaceRenderer} from "./renderer/balloon_surface_renderer";
 import {ScopeBalloon} from "./scope_balloon";
 
-export class BalloonSurface implements Attachable {
+export class BalloonSurface implements Model {
     readonly id: number;
-    readonly data: BalloonData;
+    readonly balloonData: ReactiveProperty<BalloonData>;
     readonly profile: BalloonProfile;
     readonly parent: ScopeBalloon | undefined;
     renderer: BalloonSurfaceRenderer;
+    closed = false;
 
     constructor(
-        id: number,
-        data: BalloonData,
+        id: number | undefined,
+        balloonData: BalloonData,
         profile: BalloonProfile = new BalloonProfile(),
         parent?: ScopeBalloon,
-        renderer?: BalloonSurfaceRenderer
     ) {
-        this.id = id;
-        this.data = data;
+        this.id = id || 0;
+        this.balloonData = new ReactiveProperty(balloonData);
         this.profile = profile;
         this.parent = parent;
-        if (renderer) this.attachTo(renderer);
     }
 
-    attachTo(renderer: BalloonSurfaceRenderer) {
-        this.renderer = renderer;
-        this.renderer.attachModel(this);
+    changeBalloon(balloonData: BalloonData) {
+        this.balloonData.value = balloonData;
     }
 
-    detach() {
-        this.renderer.detachModel();
-        delete this.renderer;
+    unsubscribe() {
+        if (this.closed) return;
+        this.closed = true;
     }
 }

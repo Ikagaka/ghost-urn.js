@@ -1,37 +1,35 @@
-import {Attachable} from "./attachable";
-import {ShellSurfaceRenderer} from "./renderer/shell_surface_renderer";
+import {ReactiveProperty} from "reactiveproperty";
+import {Model} from "./model";
+import {ScopeShell} from "./scope_shell";
 import {ShellData} from "./shell_data";
 import {ShellProfile} from "./shell_profile";
-import {ScopeShell} from "./scope_shell";
 
-export class ShellSurface implements Attachable {
+export class ShellSurface implements Model {
     readonly id: number;
-    readonly data: ShellData;
+    readonly shellData: ReactiveProperty<ShellData>;
     readonly profile: ShellProfile;
-    readonly parent: ScopeShell | undefined;
-    renderer: ShellSurfaceRenderer;
+    readonly parent?: ScopeShell;
+    closed = false;
 
     constructor(
-        id: number,
-        data: ShellData,
+        id: number | undefined,
+        shellData: ShellData,
         profile: ShellProfile = new ShellProfile(),
         parent?: ScopeShell,
-        renderer?: ShellSurfaceRenderer
     ) {
-        this.id = id;
-        this.data = data;
+        this.id = id || 0;
+        this.shellData = new ReactiveProperty(shellData);
         this.profile = profile;
         this.parent = parent;
-        if (renderer) this.attachTo(renderer);
     }
 
-    attachTo(renderer: ShellSurfaceRenderer) {
-        this.renderer = renderer;
-        this.renderer.attachModel(this);
+    changeShell(shellData: ShellData) {
+        this.shellData.value = shellData;
     }
 
-    detach() {
-        this.renderer.detachModel();
-        delete this.renderer;
+    unsubscribe() {
+        if (this.closed) return;
+        this.closed = true;
+
     }
 }

@@ -1,65 +1,69 @@
-import {Attachable} from "./attachable";
-import {ScopeRenderer} from "./renderer/scope_renderer";
-import {Position} from "./position";
-import {ShellData} from "./shell_data";
+import {ReactiveProperty} from "reactiveproperty";
 import {BalloonData} from "./balloon_data";
-import {ShellProfile} from "./shell_profile";
 import {BalloonProfile} from "./balloon_profile";
+import {Model} from "./model";
 import {Named} from "./named";
-import {ScopeShell} from "./scope_shell";
+import {Position} from "./position";
 import {ScopeBalloon} from "./scope_balloon";
+import {ScopeShell} from "./scope_shell";
+import {ShellData} from "./shell_data";
+import {ShellProfile} from "./shell_profile";
 
-export class Scope implements Attachable {
+export class Scope implements Model {
     readonly id: number;
-    shell: ScopeShell;
-    balloon: ScopeBalloon;
-    readonly shellData: ShellData;
-    readonly balloonData: BalloonData;
+    readonly shell: ReactiveProperty<ScopeShell>;
+    readonly balloon: ReactiveProperty<ScopeBalloon>;
+    readonly shellData: ReactiveProperty<ShellData>;
+    readonly balloonData: ReactiveProperty<BalloonData>;
     readonly shellProfile: ShellProfile;
     readonly balloonProfile: BalloonProfile;
     readonly position: Position;
-    readonly parent: Named | undefined;
-    renderer: ScopeRenderer;
+    readonly parent?: Named;
+    closed = false;
 
     constructor(
-        id: number,
+        id: number | undefined,
         shellData: ShellData,
         balloonData: BalloonData,
         shellProfile: ShellProfile = new ShellProfile(),
         balloonProfile: BalloonProfile = new BalloonProfile(),
         parent?: Named,
-        renderer?: ScopeRenderer
     ) {
-        this.id = id;
-        this.shellData = shellData;
-        this.balloonData = balloonData;
+        this.id = id || 0;
+        this.shellData = new ReactiveProperty(shellData);
+        this.balloonData = new ReactiveProperty(balloonData);
         this.shellProfile = shellProfile;
         this.balloonProfile = balloonProfile;
         this.position = this.shellProfile.position;
         this.parent = parent;
-        this.shell = new ScopeShell(this.id, this.shellData, this.shellProfile, this);
-        this.balloon = new ScopeBalloon(this.id, this.balloonData, this.balloonProfile, this);
-        if (renderer) this.attachTo(renderer);
+        this.shell = new ReactiveProperty(
+            new ScopeShell(this.id, this.shellData.value, this.shellProfile, this),
+        );
+        this.balloon = new ReactiveProperty(
+            new ScopeBalloon(this.id, this.balloonData.value, this.balloonProfile, this),
+        );
     }
 
-    attachTo(renderer: ScopeRenderer) {
-        this.renderer = renderer;
-        this.renderer.attachModel(this);
-        const shellRenderer = this.renderer.createChildShellRenderer();
-        this.shell.attachTo(shellRenderer);
-        // balloonのほうが上側
-        const balloonRenderer = this.renderer.createChildBalloonRenderer();
-        this.balloon.attachTo(balloonRenderer);
+    changeShell(shellData: ShellData) {
+        this.shellData.value = shellData;
+        this.shell.value.changeShell(shellData);
     }
 
-    detach() {
-        const shellRenderer = this.shell.renderer;
-        this.shell.detach();
-        this.renderer.removeChildShellRenderer(shellRenderer);
-        const balloonRenderer = this.balloon.renderer;
-        this.balloon.detach();
-        this.renderer.removeChildBalloonRenderer(balloonRenderer);
-        this.renderer.detachModel();
-        delete this.renderer;
+    changeBalloon(balloonData: BalloonData) {
+        this.balloonData.value = balloonData;
+        this.balloon.value.changeBalloon(balloonData);
+    }
+
+    unsubscribe() {
+        if (this.closed) return;
+        this.closed = true;
+        this.shell.value.unsubscribe();
+        this.balloon.value.unsubscribe();
+        this.shellData.unsubscribe();
+        this.balloonData.unsubscribe();
+        this.shell.value.unsubscribe();
+        this.balloon.value.unsubscribe();
+        this.shell.unsubscribe();
+        this.balloon.unsubscribe();
     }
 }

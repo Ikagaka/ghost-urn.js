@@ -1,108 +1,96 @@
-import {Attachable} from "./attachable";
-import {NamedRenderer} from './renderer/named_renderer';
-import {ShellData} from "./shell_data";
+import {ObservableArray} from "observable-collection";
+import {ReactiveProperty} from "reactiveproperty";
 import {BalloonData} from "./balloon_data";
-import {ShellProfile} from "./shell_profile";
 import {BalloonProfile} from "./balloon_profile";
+import {Model} from "./model";
 import {NamedManager} from "./named_manager";
 import {Scope} from "./scope";
+import {ShellData} from "./shell_data";
+import {ShellProfile} from "./shell_profile";
 
-export class Named implements Attachable {
+export class Named implements Model {
     readonly id: number;
-    readonly shellData: ShellData;
-    readonly balloonData: BalloonData;
+    readonly shellData: ReactiveProperty<ShellData>;
+    readonly balloonData: ReactiveProperty<BalloonData>;
     readonly shellProfile: ShellProfile;
     readonly balloonProfile: BalloonProfile;
-    readonly parent: NamedManager | undefined;
-    renderer: NamedRenderer;
+    readonly parent?: NamedManager;
+    closed = false;
 
-    protected _scopes: Scope[] = [];
-    protected _currentScopeId: number;
-    protected _scopePriority: number[] = [];
+    readonly scopes = new ObservableArray<Scope>();
 
     constructor(
-        id: number,
+        id: number | undefined,
         shellData: ShellData,
         balloonData: BalloonData,
         shellProfile: ShellProfile = new ShellProfile(),
         balloonProfile: BalloonProfile = new BalloonProfile(),
         parent?: NamedManager,
-        renderer?: NamedRenderer
     ) {
-        this.id = id;
-        this.shellData = shellData;
-        this.balloonData = balloonData;
+        this.id = id || 0;
+        this.shellData = new ReactiveProperty(shellData);
+        this.balloonData = new ReactiveProperty(balloonData);
         this.shellProfile = shellProfile;
         this.balloonProfile = balloonProfile;
         this.parent = parent;
-        if (renderer) this.attachTo(renderer);
     }
 
-    attachTo(renderer: NamedRenderer) {
-        this.renderer = renderer;
-        this.renderer.attachModel(this);
-        for (const scope of this._scopes) {
-            const childRenderer = this.renderer.createChildRenderer();
-            scope.attachTo(childRenderer);
-        }
-    }
-
-    detach() {
-        for (const scope of this._scopes) {
-            const childRenderer = scope.renderer;
-            scope.detach();
-            this.renderer.removeChildRenderer(childRenderer);
-        }
-        this.renderer.detachModel();
-        delete this.renderer;
-    }
-
-    vanish() {
-
+    unsubscribe() {
+        if (this.closed) return;
+        this.closed = true;
+        this.shellData.unsubscribe();
+        this.balloonData.unsubscribe();
+        for (const scope of this.scopes) scope.unsubscribe();
+        this.scopes.unsubscribe();
     }
 
     changeShell(shellData: ShellData) {
-
+        this.shellData.value = shellData;
+        for (const scope of this.scopes) scope.changeShell(shellData);
     }
 
     changeBalloon(balloonData: BalloonData) {
-
+        this.balloonData.value = balloonData;
+        for (const scope of this.scopes) scope.changeBalloon(balloonData);
     }
 
-    setScope(id: number) {
-        if (!this._scopes[id]) this._createScope(id);
+    selectScope(id: number) {
+        if (!this.scope(id)) this._createScope(id);
         this._setCurrentScopeId(id);
     }
 
     scope(id: number) {
-        return this._scopes[id];
+        return this.scopes.find((scope) => scope.id === id);
     }
 
-    get currentScopeId() {
-        return this._currentScopeId;
+    scopeIndex(id: number) {
+        return this.scopes.findIndex((scope) => scope.id === id);
     }
 
     get currentScope() {
-        return this._scopes[this._currentScopeId];
+        return this.scopes[this.scopes.length - 1];
     }
 
-    get scopePriority() {
-        return this._scopePriority;
+    private _setCurrentScopeId(id: number) {
+        if (this.currentScope.id === id) return;
+        const oldIndex = this.scopeIndex(id);
+        if (oldIndex === -1) return;
+        const scope = this.scopes[oldIndex];
+        this.scopes.atomic(() => {
+            this.scopes.splice(oldIndex, 1);
+            this.scopes.push(scope);
+        });
     }
 
     private _createScope(id: number) {
-        const childRenderer = this.renderer ? this.renderer.createChildRenderer() : undefined;
-        const scope = new Scope(id, this.shellData, this.balloonData, this.shellProfile, this.balloonProfile, this, childRenderer);
-        this._scopes[id] = scope;
-    }
-
-    protected _setCurrentScopeId(id: number) {
-        if (this._currentScopeId !== id) {
-            this._currentScopeId = id;
-            const oldIndex = this._scopePriority.indexOf(id);
-            if (oldIndex !== -1) this._scopePriority.splice(oldIndex, 1);
-            this._scopePriority.push(id);
-        }
-        if (this.renderer) this.renderer.setPriority(this.scopePriority);
+        const scope = new Scope(
+            id,
+            this.shellData.value,
+            this.balloonData.value,
+            this.shellProfile,
+            this.balloonProfile,
+            this,
+        );
+        this.scopes.push(scope);
     }
 }

@@ -1,87 +1,76 @@
-import {Attachable} from "./attachable";
-import {NamedManagerRenderer} from "./renderer/named_manager_renderer";
-import {ShellData} from "./shell_data";
+import {ObservableArray} from "observable-collection";
 import {BalloonData} from "./balloon_data";
-import {ShellProfile} from "./shell_profile";
 import {BalloonProfile} from "./balloon_profile";
+import {Model} from "./model";
 import {Named} from "./named";
+import {ShellData} from "./shell_data";
+import {ShellProfile} from "./shell_profile";
 
-export class NamedManager implements Attachable {
-    renderer: NamedManagerRenderer;
+export class NamedManager implements Model {
+    readonly id: number;
+    readonly nameds = new ObservableArray<Named>();
+    closed = false;
 
-    protected _nameds: {[id: number]: Named} = {};
-    protected _namedPriority: number[] = [];
+    private _autoIncrementNamedId = 0;
 
-    protected _namedID: number = 0;
-
-    constructor(renderer?: NamedManagerRenderer) {
-        if (renderer) this.attachTo(renderer);
+    constructor(id?: number) {
+        this.id = id || 0;
     }
 
-    attachTo(renderer: NamedManagerRenderer) {
-        this.renderer = renderer;
-        this.renderer.attachModel(this);
-        for (const id of Object.keys(this._nameds)) {
-            const named = this._nameds[<number><any>id]; // TODO
-            const childRenderer = this.renderer.createChildRenderer();
-            named.attachTo(childRenderer);
-        }
-    }
-
-    detach() {
-        for (const id of Object.keys(this._nameds)) {
-            const named = this._nameds[<number><any>id]; // TODO
-            const childRenderer = named.renderer;
-            named.detach();
-            this.renderer.removeChildRenderer(childRenderer);
-        }
-        this.renderer.detachModel();
-        delete this.renderer;
-    }
-
-    materialize(
+    materializeNamed(
         shellData: ShellData,
         balloonData: BalloonData,
         shellProfile?: ShellProfile,
         balloonProfile?: BalloonProfile,
-        priority = true
     ) {
-        const id = this._new_namedID();
-        const childRenderer = this.renderer ? this.renderer.createChildRenderer() : undefined;
-        const named = new Named(id, shellData, balloonData, shellProfile, balloonProfile, this, childRenderer);
-        this._nameds[id] = named;
-        if (priority) this.selectNamed(id);
+        const id = this.generateNewNamedId();
+        const named = new Named(id, shellData, balloonData, shellProfile, balloonProfile, this);
+        this.nameds.push(named);
         return named;
     }
 
-    vanish(id: number) {
-        const named = this._nameds[id];
-        named.vanish();
-        delete this._nameds[id];
+    named(id: number) {
+        return this.nameds.find((named) => named.id === id);
     }
 
-    named(id: number) {
-        return this._nameds[id];
+    namedIndex(id: number) {
+        return this.nameds.findIndex((named) => named.id === id);
+    }
+
+    get namedIds() {
+        return Array.from(this.nameds.keys());
+    }
+
+    destroyNamed(id: number) {
+        const namedIndex = this.namedIndex(id);
+        if (namedIndex === -1) return;
+        this.nameds[namedIndex].unsubscribe();
+        this.nameds.splice(namedIndex, 1);
     }
 
     selectNamed(id: number) {
-        if (this.topPriorityNamedId !== id) {
-            const oldIndex = this._namedPriority.indexOf(id);
-            if (oldIndex !== -1) this._namedPriority.splice(oldIndex, 1);
-            this._namedPriority.push(id);
-        }
-        if (this.renderer) this.renderer.setPriority(this.namedPriority);
+        if (this.topPriorityNamedId === id) return;
+        const oldIndex = this.namedIndex(id);
+        if (oldIndex === -1) return;
+        const named = this.nameds[oldIndex];
+        this.nameds.atomic(() => {
+            this.nameds.splice(oldIndex, 1);
+            this.nameds.push(named);
+        });
     }
 
-    get namedPriority() {
-        return this._namedPriority;
+    unsubscribe() {
+        if (this.closed) return;
+        this.closed = true;
+        for (const named of this.nameds) named.unsubscribe();
+        this.nameds.unsubscribe();
     }
 
     get topPriorityNamedId() {
-        return this._namedPriority[this._namedPriority.length - 1];
+        return this.nameds[this.nameds.length - 1].id;
     }
 
-    private _new_namedID() {
-        return ++this._namedID;
+    private generateNewNamedId() {
+        return ++this._autoIncrementNamedId;
     }
 }

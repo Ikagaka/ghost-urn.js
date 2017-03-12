@@ -1,56 +1,48 @@
-import {Attachable} from "./attachable";
-import {ScopeShellRenderer} from "./renderer/scope_shell_renderer";
+import {ReactiveProperty} from "reactiveproperty";
+import {Model} from "./model";
+import {Scope} from "./scope";
 import {ShellData} from "./shell_data";
 import {ShellProfile} from "./shell_profile";
-import {Scope} from "./scope";
 import {ShellSurface} from "./shell_surface";
 
-export class ScopeShell implements Attachable {
+export class ScopeShell implements Model {
     readonly id: number;
-    readonly data: ShellData;
+    readonly shellData: ReactiveProperty<ShellData>;
     readonly profile: ShellProfile;
-    readonly parent: Scope | undefined;
-    renderer: ScopeShellRenderer;
-    private _surface: ShellSurface;
+    readonly parent?: Scope;
+    readonly surface = new ReactiveProperty<ShellSurface>();
+    closed = false;
 
     constructor(
-        id: number,
-        data: ShellData,
+        id: number | undefined,
+        shellData: ShellData,
         profile: ShellProfile = new ShellProfile(),
         parent?: Scope,
-        renderer?: ScopeShellRenderer
     ) {
-        this.id = id;
-        this.data = data;
+        this.id = id || 0;
+        this.shellData = new ReactiveProperty(shellData);
         this.profile = profile;
         this.parent = parent;
-        if (renderer) this.attachTo(renderer);
-    }
-
-    attachTo(renderer: ScopeShellRenderer) {
-        this.renderer = renderer;
-        this.renderer.attachModel(this);
-    }
-
-    detach() {
-        this.renderer.detachModel();
-        delete this.renderer;
     }
 
     setSurface(idLike: number | string) {
-        const id = (typeof idLike !== "number" || <any>idLike instanceof String) ? this.data.alias[idLike] : idLike;
-        if (this._surface && this._surface.id !== id) {
-            this._surface.detach();
-            delete this._surface;
-        }
-        if (!this._surface) {
-            this.data.surface(id);
-            const childRenderer = this.renderer ? this.renderer.createChildRenderer() : undefined;
-            this._surface = new ShellSurface(<number>id, this.data, this.profile, this, childRenderer);
+        const id = typeof idLike !== "number" ?
+            this.shellData.value.alias[idLike] :
+            idLike;
+        if (!this.surface.value || this.surface.value.id !== id) {
+            if (this.surface.value) this.surface.value.unsubscribe();
+            this.surface.value = new ShellSurface(<number> id, this.shellData.value, this.profile, this);
         }
     }
 
-    get currentSurface() {
-        return this._surface;
+    changeShell(shellData: ShellData) {
+        this.shellData.value = shellData;
+        this.surface.value.changeShell(shellData);
+    }
+
+    unsubscribe() {
+        if (this.closed) return;
+        this.closed = true;
+
     }
 }
