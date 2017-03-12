@@ -1,12 +1,34 @@
+import {ObservableArray} from "observable-collection";
+import {Named} from "../named";
 import {NamedManager} from "../named_manager";
+import {RendererBase} from "../renderer";
 import {NamedRenderer} from "./named_renderer";
-import {Renderer} from "../renderer";
 
-export interface NamedManagerRenderer extends Renderer {
+/**
+ * named manager renderer
+ */
+export abstract class NamedManagerRenderer extends RendererBase<NamedManager> {
+    /** attached model */
     model: NamedManager;
-    attachModel(model: NamedManager): void;
-    createChildRenderer(): NamedRenderer;
-    removeChildRenderer(renderer: NamedRenderer): void;
-    detachModel(): void;
-    setPriority(priority: number[]): void;
+    /** child renderers by child model id */
+    childRenderers = new ObservableArray<NamedRenderer>();
+
+    /**
+     * attach model
+     * @param model model
+     */
+    attachModel(model: NamedManager) {
+        super.attachModel(model);
+        for (const named of this.model.nameds) {
+            const childRenderer = this.createChildRenderer();
+            childRenderer.attachModel(named);
+            this.childRenderers.set(named.id, childRenderer);
+        }
+    }
+    abstract createChildRenderer(): NamedRenderer;
+    abstract removeChildRenderer(renderer: NamedRenderer): void;
+    detachModel() {
+        super.detachModel();
+    }
+    abstract setPriority(priority: number[]): void;
 }

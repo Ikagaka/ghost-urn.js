@@ -1,10 +1,10 @@
 /// <reference path="../../../node_modules/phaser/typescript/phaser.d.ts" />
-import {Attachable} from "../attachable";
-import {Renderer} from "../renderer";
+import {Model} from "../model";
+import {RendererBase} from "../renderer";
 import * as Phaser from "phaser";
 
-export class PhaserRendererBase implements Renderer {
-    model: Attachable;
+export class PhaserRendererBase implements RendererBase {
+    model: Model;
     element: Element;
     game: Phaser.Game;
     layer: Phaser.Group;
@@ -34,7 +34,7 @@ export class PhaserRendererBase implements Renderer {
         });
     }
 
-    attachModel(model: Attachable) {
+    attachModel(model: Model) {
         this.model = model;
         if (!this.layer) this.layer = this.game.add.group();
     }

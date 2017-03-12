@@ -1,13 +1,13 @@
-import {Attachable} from "../attachable";
-import {Renderer} from "../renderer";
+import {Model} from "../model";
+import {RendererBase} from "../renderer";
 
-export class DOMRendererBase implements Renderer {
-    model: Attachable;
+export class DOMRendererBase implements RendererBase {
+    model: Model;
 
     constructor(public element: Element) {
     }
 
-    attachModel(model: Attachable) {
+    attachModel(model: Model) {
         this.model = model;
     }
 

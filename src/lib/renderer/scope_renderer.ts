@@ -1,9 +1,9 @@
 import {Scope} from "../scope";
 import {ScopeShellRenderer} from "./scope_shell_renderer";
 import {ScopeBalloonRenderer} from "./scope_balloon_renderer";
-import {Renderer} from "../renderer";
+import {RendererBase} from "../renderer";
 
-export interface ScopeRenderer extends Renderer {
+export interface ScopeRenderer extends RendererBase {
     model: Scope;
     attachModel(model: Scope): void;
     createChildShellRenderer(): ScopeShellRenderer;

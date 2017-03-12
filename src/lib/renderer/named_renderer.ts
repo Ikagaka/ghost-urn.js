@@ -1,8 +1,8 @@
 import {Named} from "../named";
 import {ScopeRenderer} from "./scope_renderer";
-import {Renderer} from "../renderer";
+import {RendererBase} from "../renderer";
 
-export interface NamedRenderer extends Renderer {
+export interface NamedRenderer extends RendererBase {
     model: Named;
     attachModel(model: Named): void;
     createChildRenderer(): ScopeRenderer;

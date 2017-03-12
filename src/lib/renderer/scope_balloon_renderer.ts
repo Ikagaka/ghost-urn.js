@@ -1,8 +1,8 @@
+import {RendererBase} from "../renderer";
 import {ScopeBalloon} from "../scope_balloon";
 import {BalloonSurfaceRenderer} from "./balloon_surface_renderer";
-import {Renderer} from "../renderer";
 
-export interface ScopeBalloonRenderer extends Renderer {
+export interface ScopeBalloonRenderer extends RendererBase {
     model: ScopeBalloon;
     attachModel(model: ScopeBalloon): void;
     createChildRenderer(): BalloonSurfaceRenderer;

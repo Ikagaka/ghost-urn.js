@@ -1,8 +1,8 @@
 import {ScopeShell} from "../scope_shell";
 import {ShellSurfaceRenderer} from "./shell_surface_renderer";
-import {Renderer} from "../renderer";
+import {RendererBase} from "../renderer";
 
-export interface ScopeShellRenderer extends Renderer {
+export interface ScopeShellRenderer extends RendererBase {
     model: ScopeShell;
     attachModel(model: ScopeShell): void;
     createChildRenderer(): ShellSurfaceRenderer;
