@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "observable-collection": "^1.2.1",
-    "pixi.js": "^4.4.0",
+    "pixi.js": "^5.0.0",
     "reactiveproperty": "^1.0.2",
     "ukagaka-install-descript-info": "^1.0.2"
   },
